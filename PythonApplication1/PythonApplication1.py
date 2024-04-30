@@ -1,40 +1,74 @@
-# -*- coding: utf-8 -*-
-# Информация о сотрудниках и их зарплате
-# Функция для добавления сотрудника
-def add_employee(employees):
-    name = input("Введите имя сотрудника: ")
-    salary = float(input("Введите зарплату сотрудника: "))
-    employees[name] = salary
+import json
 
-# Функция для вывода информации о сотрудниках и их зарплате
-def get_employee_info(employees):
-    for name, salary in employees.items():
-        print(f"{name}: {salary}")
+class Employee:
+    def __init__(self, id, name, surname, patronymic, gender, birth_date, position, salary):
+        self.id = id
+        self.name = name
+        self.surname = surname
+        self.patronymic = patronymic
+        self.gender = gender
+        self.birth_date = birth_date
+        self.position = position
+        self.salary = salary
 
-# Функция для вычисления информации о сотрудниках и их зарплате
-def get_employee_statistics():
-    employees = {}
-    choice = ""
-    while choice != "4":
-        print("1. Добавить сотрудника")
-        print("2. Вывести информацию о сотрудниках и их зарплате")
-        print("3. Вывести информацию о зарплате и их сотрудниках")
-        print("4. Выход")
-        choice = input("Ваш выбор: ")
-        if choice == "1":
-            add_employee(employees)
-        elif choice == "2":
-            get_employee_info(employees)
-        elif choice == "3":
-            for salary, employees_list in sorted(employees.items(), reverse=True):
-                print(f"Зарплата {salary}:")
-                for name in employees_list:
-                    print(f"- {name}")
-                print()
-        elif choice == "4":
-            print("До свидания!")
-        else:
-            print("Неверный выбор.")
+class EmployeeManager:
+    def __init__(self):
+        self.employees = []
 
-# Запуск приложения
-get_employee_statistics()
+    def add_employee(self, employee):
+        self.employees.append(employee)
+
+    def get_employee_by_id(self, employee_id):
+        for employee in self.employees:
+            if employee.id == employee_id:
+                return employee
+        return None
+
+    def update_employee(self, employee_id, updated_employee):
+        for i, employee in enumerate(self.employees):
+            if employee.id == employee_id:
+                self.employees[i] = updated_employee
+                return True
+        return False
+
+    def delete_employee(self, employee_id):
+        for i, employee in enumerate(self.employees):
+            if employee.id == employee_id:
+                del self.employees[i]
+                return True
+        return False
+
+    def save_to_file(self, file_name):
+        with open(file_name, 'w') as file:
+            json.dump([employee.__dict__ for employee in self.employees], file)
+
+    def load_from_file(self, file_name):
+        try:
+            with open(file_name, 'r') as file:
+                data = json.load(file)
+                for employee_data in data:
+                    self.add_employee(Employee(**employee_data))
+        except FileNotFoundError:
+            print(f"Файл '{file_name}' не найден.")
+
+employee_manager = EmployeeManager()
+
+# Пример добавления сотрудника
+employee_manager.add_employee(Employee(1, 'Иван', 'Иванов', 'Иванович', 'М', '01.01.1990', 'Разработчик', 50000))
+
+# Пример получения сотрудника по ID
+employee = employee_manager.get_employee_by_id(1)
+print(employee.name)  # Выведет: Иван
+
+# Пример обновления информации о сотруднике
+updated_employee = Employee(1, 'Иван', 'Иванов', 'Иванович', 'М', '01.01.1990', 'Старший разработчик', 60000)
+employee_manager.update_employee(1, updated_employee)
+
+# Пример удаления сотрудника
+employee_manager.delete_employee(1)
+
+# Пример сохранения данных в файл
+employee_manager.save_to_file('employees.json')
+
+# Пример загрузки данных из файла
+employee_manager.load_from_file('employees.json')
